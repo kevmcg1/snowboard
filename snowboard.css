@@ -1,0 +1,332 @@
+  :root{
+    --bg:#05080f;
+    --panel:rgba(10,16,26,0.55);
+    --line:rgba(160,205,240,0.18);
+    --ink:#e8f2ff;
+    --dim:#8ba3bd;
+    --label:#8fd0f4;        /* every heading and field label reads light blue */
+    --accent:#7fe3ff;
+    --accent2:#a6ff9e;
+    --warn:#ffd166;
+    --bad:#ff7b7b;
+    /* Inter carries every number and label; Roboto italic is the shouting voice */
+    --font:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    --mono:"Inter","Segoe UI",system-ui,sans-serif;
+    --msg:"Roboto","Inter","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font)}
+  /* every on-screen callout: uppercase italic Roboto */
+  .msg{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
+  canvas{display:block}
+  #scene{position:fixed;inset:0;width:100%;height:100%}
+  .hidden{display:none !important}
+  .fade{opacity:0;pointer-events:none;transition:opacity .35s ease}
+  .fade.on{opacity:1}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    backdrop-filter:blur(14px) saturate(1.2);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2);
+    box-shadow:0 10px 34px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--label);font-weight:600}
+  .val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:600}
+
+  /* the HUD sits on a shallow curve, like a wraparound cockpit */
+  #hud{position:fixed;inset:0;pointer-events:none;user-select:none;perspective:1500px;perspective-origin:50% 45%}
+
+  #statsPanel{position:absolute;top:16px;left:16px;padding:12px 14px;min-width:212px;
+              transform:rotateY(9deg) rotateZ(-.5deg);transform-origin:left center}
+  #statsPanel .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:3px 0}
+  #statsPanel .row .val{font-size:14px;font-weight:600}
+  #statsPanel .row .val small{font-size:9px;color:var(--dim);font-weight:500;margin-left:2px}
+  #statsPanel hr{border:0;border-top:1px solid var(--line);margin:7px 0}
+  #runTime{font-size:26px;letter-spacing:-.5px;line-height:1}
+  #scoreVal{font-size:22px;color:var(--accent);line-height:1}
+  #comboTag{font-size:13px;color:var(--warn);font-family:var(--mono)}
+
+  #progWrap{position:absolute;top:16px;left:50%;width:min(460px,42vw);padding:9px 12px 10px;
+            transform:translateX(-50%) rotateX(16deg);transform-origin:top center}
+  #progHead{display:flex;justify-content:space-between;margin-bottom:6px}
+  #progBar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+  #progFill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#7fe3ff,#a6ff9e)}
+  #progTicks{position:absolute;inset:0}
+  #progTicks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.30)}
+
+  #speedo{position:absolute;left:18px;bottom:18px;width:168px;height:168px;
+          transform:rotateY(11deg) rotateX(-4deg);transform-origin:left bottom}
+  #speedo svg{position:absolute;inset:0}
+  #speedText{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:6px}
+  #speedNum{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+            font-size:42px;line-height:.95;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+  #speedUnit{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
+             font-size:10px;letter-spacing:.22em;color:var(--label);margin-top:3px}
+
+  #mapPanel{position:absolute;right:16px;top:16px;padding:10px;
+            transform:rotateY(-9deg) rotateZ(.5deg);transform-origin:right center}
+  #mapHead{display:flex;justify-content:space-between;margin-bottom:6px}
+  #minimap{display:block;border-radius:8px;background:rgba(8,14,24,.55)}
+
+  #racePanel{position:absolute;right:16px;top:296px;padding:10px 11px;width:186px;
+             transform:rotateY(-9deg) rotateZ(.5deg);transform-origin:right center}
+  #raceHead{display:flex;justify-content:space-between;margin-bottom:7px}
+  #placeTag{font-family:var(--msg);font-style:italic;font-weight:900;font-size:12px;color:var(--accent2);letter-spacing:.04em}
+  .rrow{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11.5px}
+  .rrow .pip{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
+  .rrow .pl{font-family:var(--msg);font-style:italic;font-weight:900;font-size:11px;color:var(--label);width:22px}
+  .rrow .nm{flex:1;color:#cfe0f2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rrow .gp{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:10.5px;color:var(--dim)}
+  .rrow.you .nm{color:#fff;font-weight:700}
+  .rrow.you .gp{color:var(--accent)}
+  .rrow.done .gp{color:var(--accent2)}
+
+  #airBox{position:absolute;left:50%;top:19%;transform:translateX(-50%) rotateX(6deg);text-align:center}
+  #airTimeBig{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+              font-size:48px;letter-spacing:-1px;text-shadow:0 4px 22px rgba(0,0,0,.6);opacity:0;transition:opacity .12s}
+  #airTimeBig.on{opacity:1}
+  #spinBig{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
+           font-size:18px;color:var(--accent);letter-spacing:.1em;height:22px;opacity:0;transition:opacity .12s}
+  #spinBig.on{opacity:1}
+  #landCue{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
+           font-size:12px;letter-spacing:.18em;color:var(--accent2);height:16px;opacity:0;transition:opacity .15s}
+  #landCue.on{opacity:1}
+
+  #trickFeed{position:absolute;left:50%;top:33%;transform:translateX(-50%) rotateX(5deg);display:flex;flex-direction:column;align-items:center;gap:4px;width:max-content}
+  /* every callout gets a card so it stays legible over bright snow */
+  .trick{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+         font-size:25px;letter-spacing:.01em;animation:pop 1.6s ease forwards;white-space:nowrap;
+         padding:7px 18px 8px;border-radius:12px;
+         background:rgba(8,14,24,.62);border:1px solid rgba(160,205,240,.22);
+         backdrop-filter:blur(9px) saturate(1.2);-webkit-backdrop-filter:blur(9px) saturate(1.2);
+         box-shadow:0 8px 26px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.07)}
+  .trick span{color:var(--accent);font-family:var(--msg);font-style:italic;font-weight:700;font-size:17px;margin-left:8px}
+  .trick.bad{color:#ff9d9d;background:rgba(46,10,14,.74);border-color:rgba(255,123,123,.45);
+             box-shadow:0 8px 26px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,180,180,.12)}
+  .trick.good{color:var(--accent2)}
+  @keyframes pop{0%{transform:translateY(10px) scale(.85);opacity:0}12%{transform:translateY(0) scale(1);opacity:1}70%{opacity:1}100%{transform:translateY(-24px);opacity:0}}
+
+  #gauges{position:absolute;left:50%;bottom:20px;transform:translateX(-50%) rotateX(-13deg);transform-origin:bottom center;display:flex;gap:10px;align-items:flex-end}
+  .gauge{padding:8px 11px 9px;width:158px}
+  .gbar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:6px;overflow:hidden;position:relative}
+  .gbar i{position:absolute;top:0;bottom:0;left:0;width:0%;border-radius:3px;background:var(--accent)}
+  #chargeFill{background:linear-gradient(90deg,#ffd166,#ff9a5c)}
+  #leanBar i{left:50%;width:3px;background:var(--accent2);border-radius:2px}
+  #leanBar:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.28)}
+  #stanceTag{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;font-size:10px;color:var(--warn);letter-spacing:.06em}
+
+  #controlsPanel{position:absolute;right:16px;bottom:16px;padding:12px 14px;width:276px;
+                 transform:rotateY(-11deg) rotateX(-3deg);transform-origin:right bottom}
+  #controlsPanel h4{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--label);margin-bottom:8px;display:flex;justify-content:space-between;font-weight:600}
+  #controlsPanel .c{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:2.5px 0;font-size:11.5px;color:#cfe0f2}
+  kbd{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.09);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 6px;color:var(--ink);white-space:nowrap}
+
+  #warnTag{position:absolute;left:50%;bottom:124px;transform:translateX(-50%);color:#ffd98a;
+           font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+           font-size:14px;letter-spacing:.1em;opacity:0;transition:opacity .2s;
+           padding:6px 16px 7px;border-radius:11px;
+           background:rgba(44,29,6,.72);border:1px solid rgba(255,209,102,.42);
+           backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+           box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  #warnTag.on{opacity:1}
+  #camTag{position:absolute;left:50%;bottom:100px;transform:translateX(-50%);
+          font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
+          font-size:11px;letter-spacing:.18em;color:var(--dim)}
+  #vignette{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 210px rgba(0,20,50,.45)}
+  #flash{position:fixed;inset:0;pointer-events:none;background:#fff;opacity:0}
+
+  .screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;
+          background:radial-gradient(1200px 700px at 50% 30%,rgba(18,38,66,.70),rgba(3,6,12,.94));
+          backdrop-filter:blur(3px);perspective:2000px;perspective-origin:50% 42%}
+  /* Menus lean back from the bottom edge — a symmetric tilt, so neither side
+     of the card sits closer to the reader than the other. */
+  .card{width:min(900px,93vw);max-height:94vh;overflow:auto;padding:32px 38px;border-radius:20px;
+        transform:rotateX(7deg);transform-origin:50% 100%}
+  .kicker{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;font-weight:600}
+  h1{font-size:clamp(36px,5.6vw,62px);line-height:.95;letter-spacing:-2.5px;font-weight:800;margin-bottom:12px}
+  h1 em{font-style:normal;background:linear-gradient(90deg,#7fe3ff,#a6ff9e);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:26px;letter-spacing:-.8px;margin-bottom:6px;color:#cbeeff}
+  .sub{color:var(--dim);font-size:13.5px;line-height:1.65;max-width:64ch;margin-bottom:20px}
+  .grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:30px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;gap:18px}}
+  .ctrlList .c{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0;font-size:12.5px;border-bottom:1px dashed rgba(255,255,255,.07)}
+  .ctrlList .c span:first-child{color:#cfe0f2}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0}
+  .seg{display:flex;gap:4px;background:rgba(255,255,255,.06);padding:3px;border-radius:9px}
+  .seg button{background:none;border:0;color:var(--dim);font:inherit;font-size:11px;font-weight:600;padding:5px 11px;border-radius:7px;cursor:pointer;transition:.15s}
+  .seg button.on{background:rgba(127,227,255,.16);color:var(--accent)}
+  .seg button:hover{color:var(--ink)}
+  input[type=range]{width:140px;accent-color:#7fe3ff}
+  /* map picker */
+  #mapList{display:flex;flex-direction:column;gap:6px}
+  .mapRow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+          background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:11px;
+          padding:9px 12px;font:inherit;color:var(--ink);transition:.15s}
+  .mapRow:hover{background:rgba(127,227,255,.09);border-color:rgba(127,227,255,.34)}
+  .mapRow.on{background:rgba(127,227,255,.15);border-color:rgba(127,227,255,.6);
+             box-shadow:0 0 0 1px rgba(127,227,255,.25), 0 6px 18px rgba(0,0,0,.25)}
+  .mapRow .swatch{width:26px;height:26px;border-radius:7px;flex:0 0 auto;border:1px solid rgba(255,255,255,.16)}
+  .mapRow .mtxt{flex:1;min-width:0}
+  .mapRow .mname{display:block;font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+                 font-size:13.5px;letter-spacing:.02em;color:#cbeeff}
+  .mapRow.on .mname{color:var(--accent)}
+  .mapRow .mblurb{display:block;font-size:10.5px;color:var(--dim);line-height:1.35;margin-top:2px}
+  .mapRow .mstat{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:10px;
+                 color:var(--label);text-align:right;line-height:1.45;flex:0 0 auto}
+  .btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(180deg,#7fe3ff,#41b9df);color:#04141c;border:0;font:inherit;font-weight:800;font-size:15px;padding:13px 26px;border-radius:11px;cursor:pointer;box-shadow:0 8px 24px rgba(65,185,223,.3);transition:.15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(65,185,223,.42)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{background:rgba(255,255,255,.07)}
+  .btnRow{display:flex;gap:12px;align-items:center;margin-top:24px;flex-wrap:wrap}
+  .hint{font-size:11px;color:var(--dim)}
+  .statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 4px}
+  .statCell{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+  .statCell .v{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+  #rankBadge{font-family:var(--msg);font-style:italic;font-size:90px;font-weight:900;line-height:.9;letter-spacing:-4px;
+             background:linear-gradient(180deg,#fff,#7fe3ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #loadBar{height:4px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden;width:300px;margin-top:18px}
+  #loadFill{height:100%;width:0;background:linear-gradient(90deg,#7fe3ff,#a6ff9e);transition:width .12s}
+  #loadTxt{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.14em}
+
+/* ==========================================================================
+   Site chrome: header, footer, and the shifted HUD that clears them
+   ========================================================================== */
+#siteHeader,#siteFooter{
+  position:fixed;left:0;right:0;z-index:40;display:flex;align-items:center;
+  justify-content:center;gap:10px;pointer-events:none;user-select:none;
+  font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
+  background:rgba(5,9,16,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+#siteHeader{top:0;height:30px;font-size:11px;letter-spacing:.2em;color:var(--accent);
+            border-bottom:1px solid var(--line)}
+#siteFooter{bottom:0;height:26px;font-size:9.5px;letter-spacing:.16em;color:var(--dim);
+            border-top:1px solid var(--line)}
+#siteHeader a{color:var(--accent);text-decoration:none;pointer-events:auto}
+#siteHeader a:hover{text-decoration:underline}
+
+/* the HUD sits between the two bars */
+#statsPanel{top:46px}
+#progWrap{top:46px}
+#mapPanel{top:46px}
+#racePanel{top:326px}
+#speedo{bottom:48px}
+#controlsPanel{bottom:46px}
+#gauges{bottom:50px}
+#warnTag{bottom:154px}
+#camTag{bottom:130px}
+
+/* ==========================================================================
+   Airborne readout gets its own card so it reads over bright snow
+   ========================================================================== */
+#airBox{padding:9px 20px 11px;border-radius:14px;opacity:0;transition:opacity .16s ease;
+        background:rgba(8,14,24,.55);border:1px solid rgba(160,205,240,.2);
+        backdrop-filter:blur(10px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2);
+        box-shadow:0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07)}
+#airBox.on{opacity:1}
+#airTimeBig,#spinBig,#landCue{opacity:1 !important}
+
+/* ==========================================================================
+   Title screen and pause menu: Roboto, uppercase, italic, throughout
+   ========================================================================== */
+#startScreen,#startScreen *,#pauseScreen,#pauseScreen *{
+  font-family:var(--msg) !important;
+  font-style:italic !important;
+  text-transform:uppercase !important;
+}
+#startScreen .sub,#pauseScreen .sub{font-size:11.5px;line-height:1.75;letter-spacing:.06em;font-weight:700}
+#startScreen .c,#startScreen .opt span,#pauseScreen .hint{letter-spacing:.05em;font-weight:700}
+#startScreen .c{font-size:11px}
+#startScreen .seg button,#pauseScreen .seg button{letter-spacing:.06em;font-weight:900}
+#startScreen kbd,#pauseScreen kbd{font-style:italic;font-weight:700;letter-spacing:.04em}
+#startScreen .hint{letter-spacing:.08em}
+#startScreen .btn,#pauseScreen .btn{letter-spacing:.05em;font-weight:900}
+#startScreen .lbl{font-weight:900}
+
+/* ==========================================================================
+   Map picker: a distinct coloured icon per mountain
+   ========================================================================== */
+.mapRow .swatch{display:flex;align-items:center;justify-content:center;
+                width:34px;height:34px;border-radius:9px;flex:0 0 auto;
+                border:1px solid rgba(255,255,255,.14)}
+.mapRow .swatch svg{width:19px;height:19px;display:block}
+.mapRow .mfeel{display:block;font-family:var(--msg);font-style:italic;font-weight:900;
+               text-transform:uppercase;font-size:10px;letter-spacing:.08em;margin-top:3px}
+#spinBig:empty,#landCue:empty{display:none}
+
+/* finished riders get a tick beside their name in the standings */
+.rrow .tick{color:var(--accent2);font-weight:900;margin-left:5px;font-size:12px}
+.rrow.done .nm{color:var(--accent2)}
+
+/* the camera-mode tag reads over bright snow like the other callouts */
+#camTag{padding:5px 14px 6px;border-radius:10px;
+        background:rgba(8,14,24,.55);border:1px solid rgba(160,205,240,.2);
+        backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+        box-shadow:0 6px 20px rgba(0,0,0,.35);color:#bcd6ea}
+
+/* sensitivity slider, shared by the title screen and the pause menu */
+.sensRow{display:inline-flex;align-items:center;gap:10px}
+.sensRow .val{min-width:44px;text-align:right;font-size:11.5px;color:var(--accent)}
+#pauseOpts{max-width:330px;margin:14px auto 0;text-align:left}
+#pauseOpts .opt{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:11.5px}
+#pauseOpts input[type=range]{width:120px}
+
+/* ==========================================================================
+   Results screen: headings in Roboto uppercase italic, body copy in Inter
+   ========================================================================== */
+#endScreen .kicker,
+#endScreen h2,
+#endScreen .statCell .lbl,
+#endScreen .btn{
+  font-family:var(--msg);
+  font-style:italic;
+  font-weight:900;
+  text-transform:uppercase;
+}
+#endScreen h2{letter-spacing:-.4px}
+#endScreen .statCell .lbl{font-weight:700;letter-spacing:.14em}
+#endScreen .btn{letter-spacing:.05em}
+/* body copy and every number stay Inter */
+#endScreen .sub,
+#endScreen .statCell .v,
+#endScreen .hint{
+  font-family:var(--font);
+  font-style:normal;
+  text-transform:none;
+}
+#endScreen .sub{font-size:13px;line-height:1.6;letter-spacing:0}
+
+/* ==========================================================================
+   Clickable footer + the copyright notice it opens
+   ========================================================================== */
+#siteFooter{
+  pointer-events:auto;cursor:pointer;border:0;border-top:1px solid var(--line);
+  width:100%;transition:color .15s, background .15s;
+}
+#siteFooter:hover{color:var(--accent);background:rgba(10,20,34,.86)}
+#siteFooter:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
+
+#legalScreen{z-index:60}
+#legalCard{width:min(620px,92vw);padding:30px 34px}
+#legalCard .kicker{margin-bottom:8px}
+#legalCard h2{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+              color:#cbeeff;margin-bottom:14px}
+#legalCard .sub{font-size:12.5px;line-height:1.65;margin-bottom:12px;max-width:none}
+#legalCard .sub strong{color:var(--ink);font-weight:600}
+#legalCard .btn{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+
+/* ==========================================================================
+   Speedometer sits on the same drop shadow as the panels around it
+   ========================================================================== */
+#speedo svg{filter:drop-shadow(0 10px 26px rgba(0,0,0,.45)) drop-shadow(0 1px 0 rgba(255,255,255,.05))}
+
+/* descent bar: distance on the left, completion on the right */
+#progHead{align-items:baseline;gap:10px}
+#progHead .lbl.val{flex:1;text-align:right}
+#progPct{font-family:var(--msg);font-style:italic;font-weight:900;text-transform:uppercase;
+         font-size:12px;letter-spacing:.04em;color:var(--accent2);min-width:38px;text-align:right}
+
+/* main menu: the right-hand column is centred vertically in the card */
+.card .grid2{align-items:stretch}
+.card .grid2 > *:last-child{display:flex;flex-direction:column;justify-content:center}
