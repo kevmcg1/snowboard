@@ -2360,11 +2360,6 @@ const KEYMAP = {
 };
 
 addEventListener('keydown', e=>{
-  // the copyright dialog swallows everything except the key that closes it
-  if(legalOpen){
-    if(e.code === 'Escape' || e.code === 'Enter'){ showLegal(false); e.preventDefault(); }
-    return;
-  }
   if(e.code === 'Space') e.preventDefault();
   const k = KEYMAP[e.code];
   if(k) input[k] = true;
@@ -2675,20 +2670,6 @@ function drawMinimap(){
 function statCell(label, val){
   return '<div class="statCell"><div class="lbl">'+label+'</div><div class="v">'+val+'</div></div>';
 }
-/* The copyright notice. Opening it while a run is going pauses that run, so you
-   are not still riding down the hill behind the dialog. */
-let legalOpen = false;
-function showLegal(on){
-  legalOpen = on;
-  $('legalScreen').classList.toggle('hidden', !on);
-  if(on){
-    if(game.mode === 'play') pause();
-    if(document.pointerLockElement) document.exitPointerLock();
-    clearInput();
-    $('legalClose').focus();
-  }
-}
-
 function syncSens(){
   const v = Math.round(settings.sens*100);
   const txt = settings.sens.toFixed(2)+'×';
@@ -2835,13 +2816,6 @@ function boot(){
   $('againBtn').addEventListener('click', ()=> startGame(true));
   $('menuBtn').addEventListener('click', returnToMenu);
   $('pauseMenuBtn').addEventListener('click', returnToMenu);
-
-  // copyright notice, opened from the footer
-  $('siteFooter').addEventListener('click', ()=> showLegal(true));
-  $('legalClose').addEventListener('click', ()=> showLegal(false));
-  $('legalScreen').addEventListener('click', e=>{
-    if(e.target === $('legalScreen')) showLegal(false);   // click the backdrop to dismiss
-  });
 
   const map0 = MAPS[settings.map];
   buildCourse(map0.seed, map0);
