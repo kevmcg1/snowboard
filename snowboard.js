@@ -2836,8 +2836,6 @@ function boot(){
   $('menuBtn').addEventListener('click', returnToMenu);
   $('pauseMenuBtn').addEventListener('click', returnToMenu);
 
-  // copyright notice, opened from the footer
-  $('siteFooter').addEventListener('click', ()=> showLegal(true));
   $('legalClose').addEventListener('click', ()=> showLegal(false));
   $('legalScreen').addEventListener('click', e=>{
     if(e.target === $('legalScreen')) showLegal(false);   // click the backdrop to dismiss
