@@ -191,31 +191,19 @@
   #loadTxt{font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:.14em}
 
 /* ==========================================================================
-   Site chrome: header, footer, and the shifted HUD that clears them
+   Site chrome: the shifted HUD that clears the shared header and footer that clears them
    ========================================================================== */
-#siteHeader,#siteFooter{
-  position:fixed;left:0;right:0;z-index:40;display:flex;align-items:center;
-  justify-content:center;gap:10px;pointer-events:none;user-select:none;
-  font-family:var(--msg);font-style:italic;font-weight:700;text-transform:uppercase;
-  background:rgba(5,9,16,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-}
-#siteHeader{top:0;height:30px;font-size:11px;letter-spacing:.2em;color:var(--accent);
-            border-bottom:1px solid var(--line)}
-#siteFooter{bottom:0;height:26px;font-size:9.5px;letter-spacing:.16em;color:var(--dim);
-            border-top:1px solid var(--line)}
-#siteHeader a{color:var(--accent);text-decoration:none;pointer-events:auto}
-#siteHeader a:hover{text-decoration:underline}
 
 /* the HUD sits between the two bars */
-#statsPanel{top:46px}
-#progWrap{top:46px}
-#mapPanel{top:46px}
+#statsPanel{top:48px}
+#progWrap{top:48px}
+#mapPanel{top:48px}
 #racePanel{top:326px}
-#speedo{bottom:48px}
-#controlsPanel{bottom:46px}
-#gauges{bottom:50px}
-#warnTag{bottom:154px}
-#camTag{bottom:130px}
+#speedo{bottom:56px}
+#controlsPanel{bottom:54px}
+#gauges{bottom:58px}
+#warnTag{bottom:162px}
+#camTag{bottom:138px}
 
 /* ==========================================================================
    Airborne readout gets its own card so it reads over bright snow
@@ -300,12 +288,6 @@
 /* ==========================================================================
    Clickable footer + the copyright notice it opens
    ========================================================================== */
-#siteFooter{
-  pointer-events:auto;cursor:pointer;border:0;border-top:1px solid var(--line);
-  width:100%;transition:color .15s, background .15s;
-}
-#siteFooter:hover{color:var(--accent);background:rgba(10,20,34,.86)}
-#siteFooter:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
 
 #legalScreen{z-index:60}
 #legalCard{width:min(620px,92vw);padding:30px 34px}
