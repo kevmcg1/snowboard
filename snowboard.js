@@ -2351,7 +2351,7 @@ const input = { left:false, right:false, tuck:false, brake:false, fwd:false, bac
 const RAW_INPUTS = ['left','right','fwd','back','jump','grab'];
 function clearInput(){ for(const k of RAW_INPUTS) input[k] = false; }
 const settings = { cam:'third', qual:'high', map:'timber', skill:'pro', rivals:3, sens:1.0, sound:true };
-const game = { mode:'load', hudVisible:true, needRebuild:false };
+const game = { mode:'load', hudVisible:true, needRebuild:false, busy:false };
 
 const KEYMAP = {
   KeyA:'left', ArrowLeft:'left', KeyD:'right', ArrowRight:'right',
@@ -2447,8 +2447,7 @@ function buildMapList(){
   host.innerHTML = html;
   host.addEventListener('click', e=>{
     const b = e.target.closest('.mapRow'); if(!b) return;
-    settings.map = b.dataset.map;
-    game.needRebuild = true;
+    if(settings.map !== b.dataset.map){ settings.map = b.dataset.map; game.needRebuild = true; }
     host.querySelectorAll('.mapRow').forEach(x=>x.classList.toggle('on', x===b));
     updateMenuKicker();
   });
@@ -2761,6 +2760,9 @@ function showEndScreen(bonus){
 }
 
 function startGame(skipMenu){
+  // Enter on a focused button fires both the key handler and a click; ignore the
+  // second call so a half-built mountain is never launched mid-rebuild.
+  if(game.busy) return;
   $('startScreen').classList.add('hidden');
   $('endScreen').classList.add('hidden');
   $('pauseScreen').classList.add('hidden');
@@ -2786,6 +2788,7 @@ let last = 0, acc = 0;
 const FIXED = 1/120;
 
 function rebuildWorld(done){
+  game.busy = true;
   $('loadScreen').classList.remove('hidden');
   $('loadFill').style.width = '0%';
   $('loadTxt').textContent = 'carving terrain…';
@@ -2806,6 +2809,7 @@ function rebuildWorld(done){
     else {
       cacheHud();
       $('loadScreen').classList.add('hidden');
+      game.busy = false;
       done && done();
     }
   }
